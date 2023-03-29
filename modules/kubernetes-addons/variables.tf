@@ -239,6 +239,14 @@ variable "crossplane_aws_provider" {
   }
 }
 
+variable "crossplane_upbound_aws_provider" {
+  description = "AWS Upbound Provider config for Crossplane"
+  type        = any
+  default = {
+    enable = false
+  }
+}
+
 variable "crossplane_jet_aws_provider" {
   description = "AWS Provider Jet AWS config for Crossplane"
   type = object({
@@ -255,6 +263,14 @@ variable "crossplane_jet_aws_provider" {
 
 variable "crossplane_kubernetes_provider" {
   description = "Kubernetes Provider config for Crossplane"
+  type        = any
+  default = {
+    enable = false
+  }
+}
+
+variable "crossplane_helm_provider" {
+  description = "Helm Provider config for Crossplane"
   type        = any
   default = {
     enable = false
@@ -409,6 +425,19 @@ variable "enable_metrics_server" {
 
 variable "metrics_server_helm_config" {
   description = "Metrics Server Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+#---------KUBE STATE METRICS-----------
+variable "enable_kube_state_metrics" {
+  description = "Enable Kube State Metrics add-on"
+  type        = bool
+  default     = false
+}
+
+variable "kube_state_metrics_helm_config" {
+  description = "Kube State Metrics Helm Chart config"
   type        = any
   default     = {}
 }
@@ -876,10 +905,39 @@ variable "karpenter_node_iam_instance_profile" {
   default     = ""
 }
 
-variable "karpenter_sqs_queue_arn" {
-  description = "(Optional) ARN of SQS used by Karpenter when native node termination handling is enabled"
+variable "karpenter_enable_spot_termination_handling" {
+  description = "Determines whether to enable native spot termination handling"
+  type        = bool
+  default     = false
+}
+
+variable "karpenter_event_rule_name_prefix" {
+  description = "Prefix used for karpenter event bridge rules"
   type        = string
   default     = ""
+
+  validation {
+    condition     = length(var.karpenter_event_rule_name_prefix) <= 14
+    error_message = "Maximum input length exceeded. Please enter no more than 14 characters."
+  }
+}
+
+variable "sqs_queue_managed_sse_enabled" {
+  description = "Enable server-side encryption (SSE) for a SQS queue"
+  type        = bool
+  default     = true
+}
+
+variable "sqs_queue_kms_master_key_id" {
+  description = "The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom CMK"
+  type        = string
+  default     = null
+}
+
+variable "sqs_queue_kms_data_key_reuse_period_seconds" {
+  description = "The length of time, in seconds, for which Amazon SQS can reuse a data key to encrypt or decrypt messages before calling AWS KMS again"
+  type        = number
+  default     = null
 }
 
 #-----------KEDA ADDON-------------
@@ -1336,7 +1394,7 @@ variable "cilium_helm_config" {
 }
 
 variable "cilium_enable_wireguard" {
-  description = "Enable wiregaurd encryption"
+  description = "Enable wireguard encryption"
   type        = bool
   default     = false
 }
